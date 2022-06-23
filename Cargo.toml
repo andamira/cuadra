@@ -1,0 +1,26 @@
+[package]
+name = "cuadra"
+description = "grids"
+version = "0.0.1"
+edition = "2021"
+rust-version = "1.61.0"
+authors = ["José Luis Cruz <joseluis@andamira.net>"]
+license = "MIT/Apache-2.0"
+include = [
+    "/src/**/*.rs",
+    "/Cargo.toml",
+	"/doc/LICENSE*",
+	"/README"
+]
+categories = []
+keywords = []
+publish = true
+
+[dependencies]
+
+[features]
+
+[dev-dependencies]
+
+[badges]
+# maintenance = { status = "actively-developed" }
