@@ -8,4 +8,4 @@ mod error;
 mod grid;
 
 pub use error::{Error, Result};
-pub use grid::Grid2D;
+pub use grid::Grid2d;
