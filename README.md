@@ -1,6 +1,6 @@
 # cuadra
 
-Working with grids.
+A generic 2D grid abstracted over a Vec.
 
 [![Crate](https://img.shields.io/crates/v/cuadra.svg)](https://crates.io/crates/cuadra)
 [![API](https://docs.rs/cuadra/badge.svg)](https://docs.rs/cuadra/)

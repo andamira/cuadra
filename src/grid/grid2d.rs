@@ -6,7 +6,10 @@
 use crate::error::{Error, Result};
 use core::ops::{Index, IndexMut};
 
-/// 2D grid abstraction over a [`Vec`].
+/// Generic 2D grid, abstracted over a [`Vec`].
+///
+/// Internally the elements are stored in *row major order*,
+/// meaning the elements of each row are stored sequentially.
 #[derive(Clone, PartialEq, Eq)]
 pub struct Grid2d<T> {
     rows: usize,
