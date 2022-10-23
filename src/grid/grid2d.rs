@@ -4,7 +4,10 @@
 //
 
 use crate::error::{Error, Result};
-use core::ops::{Index, IndexMut};
+use core::{
+    cmp::min,
+    ops::{Index, IndexMut},
+};
 
 /// Generic 2D grid, abstracted over a [`Vec`].
 ///
@@ -154,9 +157,8 @@ impl<T: Clone> Grid2d<T> {
 
 /// # constructors (Copy)
 impl<T: Copy> Grid2d<T> {
-    /// Creates a new `Grid2d` with a size of rows, cols, filled with `element`.
     /// Creates a new `Grid2d` by concatenating the elements inside `chunk`,
-    /// with a total size of `rows`×`cols`×`chunk.len()`.
+    /// with a total capacity of `rows`×`cols`×`chunk.len()`.
     pub fn from_chunks(chunk: &[T], rows: usize, cols: usize) -> Self {
         let grid = chunk.repeat(rows * cols);
         Grid2d { grid, rows, cols }
@@ -307,7 +309,7 @@ impl<T> Grid2d<T> {
         }
     }
     /// Returns a reference to the element at the given 1D index, in *column major order*.
-    /// Panics if any parameter is out of bounds.
+    /// Panics if out of bounds.
     #[inline]
     pub fn get_ref_col_order_unchecked(&self, index: usize) -> &T {
         let col = index / self.rows;
@@ -465,53 +467,58 @@ impl<T: Copy> Grid2d<T> {
 
 /// # iterators
 impl<T> Grid2d<T> {
+    // all elements iter
+
     /// Returns an iterator over references to all elements in *row major order*.
     #[inline]
-    pub fn iter(&self) -> impl DoubleEndedIterator<Item = &T> {
+    pub fn iter_ref(&self) -> impl DoubleEndedIterator<Item = &T> {
         self.grid.iter()
     }
 
     /// Returns an iterator over mutable references to all elements in *row major order*.
     #[inline]
-    pub fn iter_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
+    pub fn iter_ref_mut(&mut self) -> impl DoubleEndedIterator<Item = &mut T> {
         self.grid.iter_mut()
     }
 
     /// Returns an iterator over references to all elements in *col major order*.
-    pub fn iter_col_order(&self) -> impl DoubleEndedIterator<Item = &T> {
+    #[inline]
+    pub fn iter_ref_col_order(&self) -> impl DoubleEndedIterator<Item = &T> {
         (0..self.cols).flat_map(move |col| (0..self.rows).map(move |row| &self[(row, col)]))
     }
 
-    // // FIXME
-    // /// Returns an iterator over mutable references to all elements in *col major order*.
-    // pub fn iter_mut_col_order(&mut self) -> impl Iterator<Item = &mut T> {
-    // }
+    // row iter
 
     /// Returns an iterator over references to all elements in the given row.
-    pub fn row_iter(&self, row: usize) -> Result<impl DoubleEndedIterator<Item = &T>> {
+    #[inline]
+    pub fn row_iter_ref(&self, row: usize) -> Result<impl DoubleEndedIterator<Item = &T>> {
         let start = self.get_index(row, 0)?;
         let end = start + self.row_len();
         Ok(self.grid[start..end].iter())
     }
-
     /// Returns an iterator over references to all elements in the given row.
     /// Panics if out of bounds.
-    pub fn row_iter_unchecked(&self, row: usize) -> impl DoubleEndedIterator<Item = &T> {
+    #[inline]
+    pub fn row_iter_ref_unchecked(&self, row: usize) -> impl DoubleEndedIterator<Item = &T> {
         let start = self.get_index_unchecked(row, 0);
         let end = start + self.row_len();
         self.grid[start..end].iter()
     }
 
     /// Returns an iterator over mutable references to all elements in the given row.
-    pub fn row_iter_mut(&mut self, row: usize) -> Result<impl DoubleEndedIterator<Item = &mut T>> {
+    #[inline]
+    pub fn row_iter_ref_mut(
+        &mut self,
+        row: usize,
+    ) -> Result<impl DoubleEndedIterator<Item = &mut T>> {
         let start = self.get_index(row, 0)?;
         let end = start + self.row_len();
         Ok(self.grid[start..end].iter_mut())
     }
-
     /// Returns an iterator over mutable references to all elements in the given row.
     /// Panics if out of bounds.
-    pub fn row_iter_mut_unchecked(
+    #[inline]
+    pub fn row_iter_ref_mut_unchecked(
         &mut self,
         row: usize,
     ) -> impl DoubleEndedIterator<Item = &mut T> {
@@ -520,8 +527,11 @@ impl<T> Grid2d<T> {
         self.grid[start..end].iter_mut()
     }
 
+    // column iter
+
     /// Returns an iterator over references to all elements in the given `col`umn.
-    pub fn col_iter(&self, col: usize) -> Result<impl DoubleEndedIterator<Item = &T>> {
+    #[inline]
+    pub fn col_iter_ref(&self, col: usize) -> Result<impl DoubleEndedIterator<Item = &T>> {
         if col >= self.cols {
             return Err(Error::IndicesOutOfBounds(0, col));
         }
@@ -529,56 +539,67 @@ impl<T> Grid2d<T> {
     }
     /// Returns an iterator over references to all elements in the given `col`umn.
     /// Panics if out of bounds.
-    pub fn col_iter_unchecked(&self, col: usize) -> impl DoubleEndedIterator<Item = &T> {
+    #[inline]
+    pub fn col_iter_ref_unchecked(&self, col: usize) -> impl DoubleEndedIterator<Item = &T> {
         (0..self.col_len()).map(move |row| &self[(row, col)])
     }
 
     /// Returns an iterator over references to all elements in the given row.
     // IMPROVE: DoubleEndedIterator?
-    pub fn col_iter_mut(&mut self, col: usize) -> Result<impl Iterator<Item = &mut T>> {
+    #[inline]
+    pub fn col_iter_ref_mut(&mut self, col: usize) -> Result<impl Iterator<Item = &mut T>> {
         if col >= self.cols {
             return Err(Error::IndicesOutOfBounds(0, col));
         }
         let col_len = self.col_len();
-        Ok(self.iter_mut().skip(col).step_by(col_len))
+        Ok(self.iter_ref_mut().skip(col).step_by(col_len))
     }
     /// Returns an iterator over references to all elements in the given row.
     /// Panics if out of bounds.
     // IMPROVE: DoubleEndedIterator?
-    pub fn col_iter_mut_unchecked(&mut self, col: usize) -> impl Iterator<Item = &mut T> {
+    #[inline]
+    pub fn col_iter_ref_mut_unchecked(&mut self, col: usize) -> impl Iterator<Item = &mut T> {
         let col_len = self.col_len();
-        self.iter_mut().skip(col).step_by(col_len)
+        self.iter_ref_mut().skip(col).step_by(col_len)
     }
 
-    /// Returns an `Iterator` over all rows.
+    // all rows iter
+
+    /// Returns an iterator over all rows.
     ///
     /// Each `Item` is itself another `Iterator` over references to the elements in that column.
-    pub fn rows_iter(
+    #[inline]
+    pub fn rows_iter_ref(
         &self,
     ) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = &T>> {
-        (0..self.rows).map(move |row| self.row_iter(row).expect("rows_iter should never fail"))
+        (0..self.rows).map(move |row| self.row_iter_ref(row).expect("rows_iter should never fail"))
     }
 
-    /// Returns an `Iterator` over all columns.
+    // all columns iter
+
+    /// Returns an iterator over all columns.
     ///
     /// Each `Item` is itself another `Iterator` over references to the elements in that column.
-    pub fn cols_iter(
+    #[inline]
+    pub fn cols_iter_ref(
         &self,
     ) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = &T>> {
-        (0..self.cols).map(move |col| self.col_iter(col).expect("cols_iter should never fail"))
+        (0..self.cols).map(move |col| self.col_iter_ref(col).expect("cols_iter should never fail"))
     }
 
-    /// Returns an iterator over `chunk_len` elements of the grid in *row major order*.
+    // chunks iter
+
+    /// Returns an iterator over `chunk_len` references to elements in *row major order*.
     /// Panics if `chunk_size` is 0.
     #[inline]
-    pub fn chunks_iter(&self, chunk_size: usize) -> impl DoubleEndedIterator<Item = &[T]> {
+    pub fn chunks_iter_ref(&self, chunk_size: usize) -> impl DoubleEndedIterator<Item = &[T]> {
         self.grid.chunks(chunk_size)
     }
 
-    /// Returns an iterator over mutable `chunk_len` elements of the grid in *row major order*.
+    /// Returns an iterator over `chunk_len` mutable references to elements in *row major order*.
     /// Panics if `chunk_size` is 0.
     #[inline]
-    pub fn chunks_iter_mut(
+    pub fn chunks_iter_ref_mut(
         &mut self,
         chunk_size: usize,
     ) -> impl DoubleEndedIterator<Item = &mut [T]> {
@@ -586,46 +607,126 @@ impl<T> Grid2d<T> {
     }
 }
 
+/// # iterators (Copy)
+impl<T: Copy> Grid2d<T> {
+    // all elements iter
+
+    /// Returns an iterator over copies of all elements in *row major order*.
+    #[inline]
+    pub fn iter(&self) -> impl DoubleEndedIterator<Item = T> + '_ {
+        self.grid.iter().copied()
+    }
+
+    /// Returns an iterator over references to all elements in *col major order*.
+    #[inline]
+    pub fn iter_col_order(&self) -> impl DoubleEndedIterator<Item = T> + '_ {
+        (0..self.cols).flat_map(move |col| (0..self.rows).map(move |row| self[(row, col)]))
+    }
+
+    // row iter
+
+    /// Returns an iterator over references to all elements in the given row.
+    #[inline]
+    pub fn row_iter(&self, row: usize) -> Result<impl DoubleEndedIterator<Item = T> + '_> {
+        let start = self.get_index(row, 0)?;
+        let end = start + self.row_len();
+        Ok(self.grid[start..end].iter().copied())
+    }
+
+    /// Returns an iterator over references to all elements in the given row.
+    /// Panics if out of bounds.
+    #[inline]
+    pub fn row_iter_unchecked(&self, row: usize) -> impl DoubleEndedIterator<Item = T> + '_ {
+        let start = self.get_index_unchecked(row, 0);
+        let end = start + self.row_len();
+        self.grid[start..end].iter().copied()
+    }
+
+    // column iter
+
+    /// Returns an iterator over copies of all elements in the given `col`umn.
+    #[inline]
+    pub fn col_iter(&self, col: usize) -> Result<impl DoubleEndedIterator<Item = T> + '_> {
+        if col >= self.cols {
+            return Err(Error::IndicesOutOfBounds(0, col));
+        }
+        Ok((0..self.col_len()).map(move |row| self[(row, col)]))
+    }
+    /// Returns an iterator over copies of all elements in the given `col`umn.
+    /// Panics if out of bounds.
+    #[inline]
+    pub fn col_iter_unchecked(&self, col: usize) -> impl DoubleEndedIterator<Item = T> + '_ {
+        (0..self.col_len()).map(move |row| self[(row, col)])
+    }
+
+    /// Returns an iterator over all rows.
+    ///
+    /// Each `Item` is itself another `Iterator` over copies of the elements in that column.
+    #[inline]
+    pub fn rows_iter(
+        &self,
+    ) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = T> + '_> {
+        (0..self.rows).map(move |row| self.row_iter(row).expect("rows_iter should never fail"))
+    }
+
+    /// Returns an iterator over all columns.
+    ///
+    /// Each `Item` is itself another `Iterator` over copies of the elements in that column.
+    #[inline]
+    pub fn cols_iter(
+        &self,
+    ) -> impl DoubleEndedIterator<Item = impl DoubleEndedIterator<Item = T> + '_> {
+        (0..self.cols).map(move |col| self.col_iter(col).expect("cols_iter should never fail"))
+    }
+}
+
 /// # collecting to Vec
 impl<T: Clone> Grid2d<T> {
     /// Collects the `Grid2d` into a `Vec` of rows.
+    #[inline]
     pub fn as_rows(&self) -> Vec<Vec<T>> {
-        self.rows_iter()
+        self.rows_iter_ref()
             .map(|row_iter| row_iter.cloned().collect())
             .collect()
     }
 
     /// Collects the `Grid2d` into a `Vec` of columns.
+    #[inline]
     pub fn as_cols(&self) -> Vec<Vec<T>> {
-        self.cols_iter()
+        self.cols_iter_ref()
             .map(|col_iter| col_iter.cloned().collect())
             .collect()
     }
 
     /// Collects the `Grid2d` into a `Vec` of elements in *row major order*.
+    #[inline]
     pub fn as_row_order(&self) -> Vec<T> {
-        self.iter().cloned().collect()
+        self.iter_ref().cloned().collect()
     }
 
     /// Collects the `Grid2d` into a `Vec` of elements in *column major order*.
+    #[inline]
     pub fn as_col_order(&self) -> Vec<T> {
-        self.iter_col_order().cloned().collect()
+        self.iter_ref_col_order().cloned().collect()
     }
 }
 
 /// # exposing the inner Vec
 impl<T> Grid2d<T> {
     /// Returns the underlying Vec.
+    #[inline]
     pub fn vec(self) -> Vec<T> {
         self.grid
     }
 
     /// Returns a reference to the underlying Vec.
+    #[inline]
     pub fn vec_ref(&self) -> &Vec<T> {
         &self.grid
     }
 
     /// Returns a mutable reference to the underlying Vec.
+    #[inline]
     pub fn vec_ref_mut(&mut self) -> &mut Vec<T> {
         &mut self.grid
     }
@@ -633,8 +734,21 @@ impl<T> Grid2d<T> {
 
 /// # slices
 impl<T> Grid2d<T> {
+    /// Returns a slice of the grid.
+    #[inline]
+    pub fn as_slice(&self) -> &[T] {
+        self.grid.as_slice()
+    }
+
+    /// Returns a mutable slice of the grid.
+    #[inline]
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
+        self.grid.as_mut_slice()
+    }
+
     /// Returns a slice of requested `row`.
-    pub fn row(&self, row: usize) -> Result<&[T]> {
+    #[inline]
+    pub fn row_slice(&self, row: usize) -> Result<&[T]> {
         let start = self.get_index(row, 0)?;
         let end = start + self.row_len();
         Ok(&self.grid[start..end])
@@ -642,14 +756,16 @@ impl<T> Grid2d<T> {
 
     /// Returns a slice of requested `row`.
     /// Panics if out of bounds.
-    pub fn row_unchecked(&self, row: usize) -> &[T] {
+    #[inline]
+    pub fn row_slice_unchecked(&self, row: usize) -> &[T] {
         let start = self.get_index_unchecked(row, 0);
         let end = start + self.row_len();
         &self.grid[start..end]
     }
 
     /// Returns a mutable slice of requested `row`.
-    pub fn row_mut(&mut self, row: usize) -> Result<&mut [T]> {
+    #[inline]
+    pub fn row_mut_slice(&mut self, row: usize) -> Result<&mut [T]> {
         let start = self.get_index(row, 0)?;
         let end = start + self.row_len();
         Ok(&mut self.grid[start..end])
@@ -657,7 +773,8 @@ impl<T> Grid2d<T> {
 
     /// Returns a mutable slice of requested `row`.
     /// Panics if out of bounds.
-    pub fn row_mut_unchecked(&mut self, row: usize) -> &mut [T] {
+    #[inline]
+    pub fn row_mut_slice_unchecked(&mut self, row: usize) -> &mut [T] {
         let start = self.get_index_unchecked(row, 0);
         let end = start + self.row_len();
         &mut self.grid[start..end]
@@ -667,18 +784,21 @@ impl<T> Grid2d<T> {
 /// # get chunks
 impl<T> Grid2d<T> {
     /// Returns a slice of the chunk of elements at the given `row` and `col`umn.
+    #[inline]
     pub fn get_chunk(&self, chunk_len: usize, row: usize, col: usize) -> Result<&[T]> {
         self.get_chunk_index(chunk_len, row, col)
             .map(|index| &self.grid[index..index + chunk_len])
     }
     /// Returns a slice of the chunk of elements at the given `row` and `col`umn.
     /// Panics if out of bounds.
+    #[inline]
     pub fn get_chunk_unchecked(&self, chunk_len: usize, row: usize, col: usize) -> &[T] {
         let index = self.get_chunk_index_unchecked(chunk_len, row, col);
         &self.grid[index..index + chunk_len]
     }
 
     /// Returns a mutable slice of the chunk of elements at the given `row` and `col`umn.
+    #[inline]
     pub fn get_chunk_mut(&mut self, chunk_len: usize, row: usize, col: usize) -> Result<&mut [T]> {
         self.get_chunk_index(chunk_len, row, col)
             .map(move |index| &mut self.grid[index..index + chunk_len])
@@ -686,6 +806,7 @@ impl<T> Grid2d<T> {
 
     /// Returns a mutable slice of the chunk of elements at the given `row` and `col`umn.
     /// Panics if out of bounds.
+    #[inline]
     pub fn get_chunk_mut_unchecked(
         &mut self,
         chunk_len: usize,
@@ -700,6 +821,7 @@ impl<T> Grid2d<T> {
 /// # set chunks
 impl<T: Clone> Grid2d<T> {
     /// Sets the elements on a chunk.
+    #[inline]
     pub fn set_chunk(
         &mut self,
         chunk_len: usize,
@@ -716,6 +838,7 @@ impl<T: Clone> Grid2d<T> {
 
     /// Sets the elements on a chunk.
     /// Panics if out of bounds.
+    #[inline]
     pub fn set_chunk_unchecked(
         &mut self,
         chunk_len: usize,

@@ -106,11 +106,21 @@ fn single() {
 
 #[test]
 fn iterators() {
-    // all elements
+    // all elements iter
 
     let mut g1 = Grid2d::from_rows(&[vec![1, 2], vec![3, 4], vec![5, 6]]).unwrap();
     {
-        let mut i1 = g1.iter_mut();
+        let mut i1 = g1.iter();
+        assert_eq![Some(1), i1.next()];
+        assert_eq![Some(2), i1.next()];
+        assert_eq![Some(3), i1.next()];
+        assert_eq![Some(4), i1.next()];
+        assert_eq![Some(5), i1.next()];
+        assert_eq![Some(6), i1.next()];
+        assert_eq![None, i1.next()];
+    }
+    {
+        let mut i1 = g1.iter_ref_mut();
         assert_eq![Some(&mut 1), i1.next()];
         assert_eq![Some(&mut 2), i1.next()];
         assert_eq![Some(&mut 3), i1.next()];
@@ -121,6 +131,16 @@ fn iterators() {
     }
     {
         let mut i2 = g1.iter_col_order();
+        assert_eq![Some(1), i2.next()];
+        assert_eq![Some(3), i2.next()];
+        assert_eq![Some(5), i2.next()];
+        assert_eq![Some(2), i2.next()];
+        assert_eq![Some(4), i2.next()];
+        assert_eq![Some(6), i2.next()];
+        assert_eq![None, i2.next()];
+    }
+    {
+        let mut i2 = g1.iter_ref_col_order();
         assert_eq![Some(&1), i2.next()];
         assert_eq![Some(&3), i2.next()];
         assert_eq![Some(&5), i2.next()];
@@ -130,7 +150,7 @@ fn iterators() {
         assert_eq![None, i2.next()];
     }
 
-    // single row & column
+    // row iter
 
     let mut g2 = Grid2d::from_rows(&[
         vec![1, 2, 3, 4],
@@ -142,6 +162,14 @@ fn iterators() {
 
     {
         let mut irow = g2.row_iter(2).unwrap();
+        assert_eq![Some(9), irow.next()];
+        assert_eq![Some(10), irow.next()];
+        assert_eq![Some(11), irow.next()];
+        assert_eq![Some(12), irow.next()];
+        assert_eq![None, irow.next()];
+    }
+    {
+        let mut irow = g2.row_iter_ref(2).unwrap();
         assert_eq![Some(&9), irow.next()];
         assert_eq![Some(&10), irow.next()];
         assert_eq![Some(&11), irow.next()];
@@ -149,7 +177,7 @@ fn iterators() {
         assert_eq![None, irow.next()];
     }
     {
-        let mut irowm = g2.row_iter_mut(2).unwrap();
+        let mut irowm = g2.row_iter_ref_mut(2).unwrap();
         assert_eq![Some(&mut 9), irowm.next()];
         assert_eq![Some(&mut 10), irowm.next()];
         assert_eq![Some(&mut 11), irowm.next()];
@@ -157,7 +185,26 @@ fn iterators() {
         assert_eq![None, irowm.next()];
     }
     {
+        let mut irow = g2.row_iter_bounded(2, 1, 100).unwrap();
+        assert_eq![Some(10), irow.next()];
+        assert_eq![Some(11), irow.next()];
+        assert_eq![Some(12), irow.next()];
+        assert_eq![Some(13), irow.next()];
+        assert_eq![None, irow.next()];
+    }
+
+    // column iter
+
+    {
         let mut icol = g2.col_iter(2).unwrap();
+        assert_eq![Some(3), icol.next()];
+        assert_eq![Some(7), icol.next()];
+        assert_eq![Some(11), icol.next()];
+        assert_eq![Some(15), icol.next()];
+        assert_eq![None, icol.next()];
+    }
+    {
+        let mut icol = g2.col_iter_ref(2).unwrap();
         assert_eq![Some(&3), icol.next()];
         assert_eq![Some(&7), icol.next()];
         assert_eq![Some(&11), icol.next()];
@@ -165,7 +212,7 @@ fn iterators() {
         assert_eq![None, icol.next()];
     }
     {
-        let mut icolm = g2.col_iter_mut(2).unwrap();
+        let mut icolm = g2.col_iter_ref_mut(2).unwrap();
         assert_eq![Some(&mut 3), icolm.next()];
         assert_eq![Some(&mut 7), icolm.next()];
         assert_eq![Some(&mut 11), icolm.next()];
