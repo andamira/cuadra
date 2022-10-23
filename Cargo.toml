@@ -1,15 +1,15 @@
 [package]
 name = "cuadra"
 description = "grids"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
-rust-version = "1.61.0"
+rust-version = "1.64.0"
 authors = ["José Luis Cruz <joseluis@andamira.net>"]
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 include = [
     "/src/**/*.rs",
     "/Cargo.toml",
-	"/res/LICENSE*",
+	"/LICENSE-*",
 	"/README.md"
 ]
 categories = []
@@ -23,4 +23,4 @@ publish = true
 [dev-dependencies]
 
 [badges]
-maintenance = { status = "actively-developed" }
+maintenance = { status = "experimental" }
