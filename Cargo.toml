@@ -1,6 +1,6 @@
 [package]
 name = "cuadra"
-description = "grids"
+description = "layouts"
 version = "0.0.3"
 edition = "2021"
 rust-version = "1.64.0"
@@ -19,6 +19,8 @@ publish = true
 [dependencies]
 
 [features]
+default = ["std"]
+std = []
 
 [dev-dependencies]
 
