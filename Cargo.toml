@@ -17,6 +17,7 @@ keywords = []
 publish = true
 
 [dependencies]
+paste = "1.0.11"
 
 [features]
 default = ["std"]

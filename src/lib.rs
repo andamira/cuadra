@@ -2,6 +2,7 @@
 //
 //! Layouts.
 //
+//
 
 #![warn(clippy::all)]
 #![allow(
@@ -19,7 +20,8 @@ mod position;
 mod size;
 mod zone;
 
-pub(crate) use clamper::Clamper;
-pub use position::Position;
-pub use size::Size;
-pub use zone::Zone;
+pub use clamper::{Clamper16, Clamper32, Clamper64, Clamper8};
+
+pub use position::{Position16, Position32, Position64, Position8};
+pub use size::{Size16, Size32, Size64, Size8};
+pub use zone::{Zone16, Zone32, Zone64, Zone8};
