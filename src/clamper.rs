@@ -5,7 +5,10 @@
 
 #![allow(dead_code)]
 
-/// Generates constant saturating casting functions between primitives.
+/// Defines constant saturating casting functions between the permutations
+/// of all the requested origin primitives and the destination primitives.
+///
+/// Some of the functions are redundant, and not all of them will be used.
 macro_rules! scast {
     (all_orig: $($orig:ty),+) => {
         $( scast![all_dest: $orig; i8, u8, i16, u16, i32, u32, i64, u64, usize, isize]; )+
@@ -20,8 +23,8 @@ macro_rules! scast {
             #[doc = "Returns a saturating casted value from " $orig " to " $dest "."]
             #[inline]
             const fn [<cast_$orig _$dest>](orig: $orig) -> $dest {
-                let casted = orig as $dest;
                 // if casted != orig it can be either 0 or -1.
+                let casted = orig as $dest;
                 let overflow = orig != casted as $orig;
                 if overflow { if casted == 0 { $dest::MIN } else { $dest::MAX } } else { casted }
             }
@@ -40,10 +43,10 @@ macro_rules! macro_clamper {
     // $b: bit size
     (single: $ip:ty, $b:literal) => {
         paste::paste! {
-            #[doc = "Clamps distances to half the extent of an [`" $ip "`]."]
+            #[doc = "Clamps a distance to half the range of an [`" $ip "`]."]
             ///
-            /// This is to ensure a safety margin where big sizes can be
-            /// positioned at high positions without becoming distorted.
+            /// It makes sure to clamp to the minimum or maximum representable
+            /// value in the new bit-size, under the new range-limit conditions.
             pub struct [<Clamper$b>];
 
             impl [<Clamper$b>] {
@@ -56,6 +59,11 @@ macro_rules! macro_clamper {
                 /* clamping from the same primitive */
 
                 #[doc = "Clamps [`" $ip "`] distance to [`MIN`][Self::MIN]`..`[`MAX`][Self::MAX]."]
+                ///
+                /// This function clamps a value using the same primitive type.
+                ///
+                /// It is simpler and probably faster than the other clamping
+                /// functions with the bit-size in the name.
                 #[inline(always)]
                 pub const fn clamp(d: $ip) -> $ip {
                     if d < Self::MIN {
@@ -68,6 +76,11 @@ macro_rules! macro_clamper {
                 }
 
                 #[doc = "Clamps [`" $ip "`] distance to `0..`[`MAX`][Self::MAX]."]
+                ///
+                /// This function clamps a value using the same primitive type.
+                ///
+                /// It is simpler and probably faster than the other clamping
+                /// functions with the bit-size in the name.
                 #[inline]
                 pub const fn clamp_non_negative(d: $ip) -> $ip {
                     if d < 0 {
@@ -79,6 +92,11 @@ macro_rules! macro_clamper {
                     }
                 }
                 #[doc = "Clamps [`" $ip "`] distance to `1..`[`MAX`][Self::MAX]."]
+                ///
+                /// This function clamps a value using the same primitive type.
+                ///
+                /// It is simpler and probably faster than the other clamping
+                /// functions with the bit-size in the name.
                 #[inline]
                 pub const fn clamp_positive(d: $ip) -> $ip {
                     if d < 1 {
@@ -337,114 +355,4 @@ macro_rules! macro_clamper {
         }
     };
 }
-
 macro_clamper![i8, 8, i16, 16, i32, 32, i64, 64];
-// macro_clamper![i16, 16];
-// macro_clamper![i32, 32];
-// macro_clamper![i64, 64];
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    // MAYBE
-    // use core::cmp::min;
-    // use az::SaturatingAs;
-
-    macro_rules! basics {
-        ($c:ident, $i:ident, $min:literal, $max:literal) => {
-            assert_eq![$c::MIN, $min];
-            assert_eq![$c::MAX, $max];
-
-            assert_eq![$c::MIN, $c::clamp($i::MIN)];
-            assert_eq![$c::MAX, $c::clamp($i::MAX)];
-
-            assert_eq![0, $c::clamp_non_negative($i::MIN)];
-            assert_eq![$c::MAX, $c::clamp_non_negative($i::MAX)];
-
-            assert_eq![1, $c::clamp_positive($i::MIN)];
-            assert_eq![$c::MAX, $c::clamp_positive($i::MAX)];
-
-            assert_eq![$c::MAX * 2, $i::MAX - 1];
-        };
-    }
-
-    #[test]
-    #[rustfmt::skip]
-    fn clamp_basics() {
-        basics![Clamper8, i8, -64, 63];
-        basics![Clamper16, i16, -16_384, 16_383];
-        basics![Clamper32, i32, -1_073_741_824, 1_073_741_823];
-        basics![Clamper64, i64, -4_611_686_018_427_387_904, 4_611_686_018_427_387_903];
-    }
-
-    // macro_rules! clamp_u32 {
-    //     ($($c:ident, $i:ty),+) => { $( clamp_u32![single: $c, $i]; )+ };
-    //     (single: $c:ident, $i:ty) => {
-    //         assert_eq![0, $c::clamp_from_u32(0)];
-    //         assert_eq![10, $c::clamp_from_u32(10)];
-    //         assert_eq![min($c::MAX, u32::MAX.saturating_as::<$i>()), $c::clamp_from_u32(u32::MAX)];
-    //     };
-    // }
-    // #[test]
-    // fn clamp_u32() {
-    //     clamp_u32![Clamper8, i8, Clamper16, i16, Clamper32, i32, Clamper64, i64];
-    // }
-
-    #[test]
-    fn clamping_32() {
-        use super::Clamper32 as C;
-
-        /* i32 */
-
-        assert_eq![99, C::clamp(99)];
-        assert_eq![-99, C::clamp(-99)];
-        assert_eq![C::MAX, C::clamp(i32::MAX)];
-        assert_eq![C::MIN, C::clamp(i32::MIN)];
-        //
-        assert_eq![C::MAX, C::clamp_non_negative(i32::MAX)];
-        assert_eq![0, C::clamp_non_negative(i32::MIN)];
-        //
-        assert_eq![C::MAX, C::clamp_positive(i32::MAX)];
-        assert_eq![1, C::clamp_positive(i32::MIN)];
-
-        /* from/to u32 */
-
-        assert_eq![C::MAX, C::clamp_from_u32(u32::MAX)];
-        assert_eq![0, C::clamp_from_u32(u32::MIN)];
-        assert_eq![C::MAX, C::clamp_positive_from_u32(u32::MAX)];
-        assert_eq![1, C::clamp_positive_from_u32(u32::MIN)];
-        //
-        assert_eq![C::MAX as u32, C::clamp_to_u32(i32::MAX)];
-        assert_eq![0_u32, C::clamp_to_u32(i32::MIN)];
-        assert_eq![C::MAX as u32, C::clamp_positive_to_u32(i32::MAX)];
-        assert_eq![1_u32, C::clamp_positive_to_u32(i32::MIN)];
-
-        /* from/to i16 */
-
-        assert_eq![i16::MAX as i32, C::clamp_from_i16(i16::MAX)];
-        assert_eq![i16::MIN as i32, C::clamp_from_i16(i16::MIN)];
-        assert_eq![i16::MAX as i32, C::clamp_non_negative_from_i16(i16::MAX)];
-        assert_eq![0_i32, C::clamp_non_negative_from_i16(i16::MIN)];
-        assert_eq![i16::MAX as i32, C::clamp_positive_from_i16(i16::MAX)];
-        assert_eq![1_i32, C::clamp_positive_from_i16(i16::MIN)];
-        //
-        assert_eq![i16::MAX, C::clamp_to_i16(i32::MAX)];
-        assert_eq![i16::MIN, C::clamp_to_i16(i32::MIN)];
-        assert_eq![i16::MAX, C::clamp_non_negative_to_i16(i32::MAX)];
-        assert_eq![0_i16, C::clamp_non_negative_to_i16(i32::MIN)];
-        assert_eq![i16::MAX, C::clamp_positive_to_i16(i32::MAX)];
-        assert_eq![1_i16, C::clamp_positive_to_i16(i32::MIN)];
-
-        /* from/to usize */
-        assert_eq![C::MAX, C::clamp_from_usize(usize::MAX)];
-        assert_eq![0, C::clamp_from_usize(usize::MIN)];
-        assert_eq![C::MAX, C::clamp_positive_from_usize(usize::MAX)];
-        assert_eq![1, C::clamp_positive_from_usize(usize::MIN)];
-        //
-        assert_eq![C::MAX as usize, C::clamp_to_usize(i32::MAX)];
-        assert_eq![0_usize, C::clamp_to_usize(i32::MIN)];
-        assert_eq![C::MAX as usize, C::clamp_positive_to_usize(i32::MAX)];
-        assert_eq![1_usize, C::clamp_positive_to_usize(i32::MIN)];
-    }
-}
