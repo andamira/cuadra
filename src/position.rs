@@ -25,6 +25,12 @@ macro_rules! position {
             }
         }
 
+        impl fmt::Display for [<Position$b>] {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(f, "x:{} y:{}", self.x, self.y)
+            }
+        }
+
         impl [<Position$b>] {
             /// Defines a new `Position` with the given dimensions,
             /// which has to be at least `1`.

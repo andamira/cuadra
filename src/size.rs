@@ -22,7 +22,13 @@ macro_rules! size {
 
         impl fmt::Debug for [<Size$b>] {
             fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-                write!(f, "{} {{ x: {}, y: {} }}", stringify!([<Size$b>]), self.w, self.h,)
+                write!(f, "{} {{ w: {}, h: {} }}", stringify!([<Size$b>]), self.w, self.h,)
+            }
+        }
+
+        impl fmt::Display for [<Size$b>] {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(f, "w:{} h:{}", self.w, self.h)
             }
         }
 

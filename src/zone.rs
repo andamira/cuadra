@@ -26,6 +26,12 @@ macro_rules! zone {
             }
         }
 
+        impl fmt::Display for [<Zone$b>] {
+            fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                write!(f, "{} {}", self.p, self.s)
+            }
+        }
+
         impl [<Zone$b>] {
             /// Returns a new zone from the provided position and size.
             pub const fn new(position: [<Position$b>], size: [<Size$b>]) -> Self {
