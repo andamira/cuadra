@@ -106,6 +106,7 @@ macro_rules! zone {
             }
         }
 
+        /// # conversions
         impl [<Zone$b>] {
             /// Returns a tuple with the `(x, y, width, height)` components.
             pub const fn as_tuple(&self) -> ($i, $i, $i, $i) {

@@ -3,7 +3,10 @@
 //!
 //
 
-use core::fmt;
+use core::{
+    fmt,
+    ops::{Add, Div, Mul, Sub},
+};
 
 macro_rules! size {
     // $i: inner primitive
@@ -77,6 +80,9 @@ macro_rules! size {
             }
         }
 
+        /* conversions */
+
+        /// # conversions
         impl [<Size$b>] {
             pub const fn as_tuple(&self) -> ($i, $i) {
                 (self.w, self.h)
@@ -205,6 +211,266 @@ macro_rules! size {
                 s.as_tuple_usize()
             }
         }
+
+        /* operations with another size */
+
+        /// # arithmetic ops.
+        impl [<Size$b>] {
+            #[doc = "Saturating, clamped addition of two `" [<Size$b>] "`."]
+            pub const fn saturating_add(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_add(rhs.w()),
+                    self.h().saturating_add(rhs.h()),
+                    )
+            }
+            #[doc = "Wrapping, clamped addition of two `" [<Size$b>] "`."]
+            pub const fn wrapping_add(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_add(rhs.w()),
+                    self.h().wrapping_add(rhs.h()),
+                    )
+            }
+            #[doc = "Checked, clamped addition of two `" [<Size$b>] "`."]
+            pub fn checked_add(&self, rhs: [<Size$b>]) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_add(rhs.w())?,
+                    self.h().checked_add(rhs.h())?,
+                    ))
+            }
+
+            #[doc = "Saturating, clamped addition of two `" [<Size$b>] "`."]
+            pub const fn saturating_sub(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_sub(rhs.w()),
+                    self.h().saturating_sub(rhs.h()),
+                    )
+            }
+            #[doc = "Wrapping, clamped addition of two `" [<Size$b>] "`."]
+            pub const fn wrapping_sub(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_sub(rhs.w()),
+                    self.h().wrapping_sub(rhs.h()),
+                    )
+            }
+            #[doc = "Checked, clamped addition of two `" [<Size$b>] "`."]
+            pub fn checked_sub(&self, rhs: [<Size$b>]) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_sub(rhs.w())?,
+                    self.h().checked_sub(rhs.h())?,
+                    ))
+            }
+
+            #[doc = "Saturating, clamped multiplication of two `" [<Size$b>] "`."]
+            pub const fn saturating_mul(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_mul(rhs.w()),
+                    self.h().saturating_mul(rhs.h()),
+                    )
+            }
+            #[doc = "Wrapping, clamped multiplication of two `" [<Size$b>] "`."]
+            pub const fn wrapping_mul(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_mul(rhs.w()),
+                    self.h().wrapping_mul(rhs.h()),
+                    )
+            }
+            #[doc = "Checked, clamped multiplication of two `" [<Size$b>] "`."]
+            pub fn checked_mul(&self, rhs: [<Size$b>]) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_mul(rhs.w())?,
+                    self.h().checked_mul(rhs.h())?,
+                    ))
+            }
+
+            #[doc = "Saturating, clamped division of two `" [<Size$b>] "`."]
+            pub const fn saturating_div(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_div(rhs.w()),
+                    self.h().saturating_div(rhs.h()),
+                    )
+            }
+            #[doc = "Wrapping, clamped division of two `" [<Size$b>] "`."]
+            pub const fn wrapping_div(&self, rhs: [<Size$b>]) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_div(rhs.w()),
+                    self.h().wrapping_div(rhs.h()),
+                    )
+            }
+            #[doc = "Checked, clamped division of two `" [<Size$b>] "`."]
+            pub fn checked_div(&self, rhs: [<Size$b>]) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_div(rhs.w())?,
+                    self.h().checked_div(rhs.h())?,
+                    ))
+            }
+
+            /* operations with a primitive value */
+
+            #[doc = "Saturating, clamped addition of a `" [<Size$b>] " with a `value``."]
+            pub const fn saturating_add_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_add(value),
+                    self.h().saturating_add(value),
+                    )
+            }
+            #[doc = "Wrapping, clamped addition of a `" [<Size$b>] " with a `value``."]
+            pub const fn wrapping_add_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_add(value),
+                    self.h().wrapping_add(value),
+                    )
+            }
+            #[doc = "Checked, clamped addition of a `" [<Size$b>] " with a `value``."]
+            pub fn checked_add_value(&self, value: $i) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_add(value)?,
+                    self.h().checked_add(value)?,
+                    ))
+            }
+
+            #[doc = "Saturating, clamped substraction of a `" [<Size$b>] " with a `value``."]
+            pub const fn saturating_sub_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_sub(value),
+                    self.h().saturating_sub(value),
+                    )
+            }
+            #[doc = "Wrapping, clamped substraction of a `" [<Size$b>] " with a `value``."]
+            pub const fn wrapping_sub_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_sub(value),
+                    self.h().wrapping_sub(value),
+                    )
+            }
+            #[doc = "Checked, clamped substraction of a `" [<Size$b>] " with a `value``."]
+            pub fn checked_sub_value(&self, value: $i) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_sub(value)?,
+                    self.h().checked_sub(value)?,
+                    ))
+            }
+
+            #[doc = "Saturating, clamped multiplication of a `" [<Size$b>] " with a `value``."]
+            pub const fn saturating_mul_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_mul(value),
+                    self.h().saturating_mul(value),
+                    )
+            }
+            #[doc = "Wrapping, clamped multiplication of a `" [<Size$b>] " with a `value``."]
+            pub const fn wrapping_mul_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_mul(value),
+                    self.h().wrapping_mul(value),
+                    )
+            }
+            #[doc = "Checked, clamped multiplication of a `" [<Size$b>] " with a `value``."]
+            pub fn checked_mul_value(&self, value: $i) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_mul(value)?,
+                    self.h().checked_mul(value)?,
+                    ))
+            }
+
+            #[doc = "Saturating, clamped division of a `" [<Size$b>] " with a `value``."]
+            pub const fn saturating_div_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().saturating_div(value),
+                    self.h().saturating_div(value),
+                    )
+            }
+            #[doc = "Wrapping, clamped division of a `" [<Size$b>] " with a `value``."]
+            pub const fn wrapping_div_value(&self, value: $i) -> [<Size$b>] {
+                Self::new(
+                    self.w().wrapping_div(value),
+                    self.h().wrapping_div(value),
+                    )
+            }
+            #[doc = "Checked, clamped division of a `" [<Size$b>] " with a `value``."]
+            pub fn checked_div_value(&self, value: $i) -> Option<[<Size$b>]> {
+                Some(Self::new(
+                    self.w().checked_div(value)?,
+                    self.h().checked_div(value)?,
+                    ))
+            }
+        }
+
+        /* impl ops */
+
+        impl Add for [<Size$b>] {
+            type Output = Self;
+
+            /// Saturating, clamped addition.
+            #[inline]
+            fn add(self, rhs: Self) -> Self {
+                self.saturating_add(rhs)
+            }
+        }
+        impl Sub for [<Size$b>] {
+            type Output = Self;
+
+            /// Saturating, clamped addition.
+            #[inline]
+            fn sub(self, rhs: Self) -> Self {
+                self.saturating_sub(rhs)
+            }
+        }
+        impl Mul for [<Size$b>] {
+            type Output = Self;
+
+            /// Saturating, clamped multiplication.
+            #[inline]
+            fn mul(self, rhs: Self) -> Self {
+                self.saturating_mul(rhs)
+            }
+        }
+        impl Div for [<Size$b>] {
+            type Output = Self;
+
+            #[inline]
+            /// Saturating, clamped division.
+            fn div(self, rhs: Self) -> Self {
+                self.saturating_div(rhs)
+            }
+        }
+
+        impl Add<$i> for [<Size$b>] {
+            type Output = Self;
+
+            /// Saturating, clamped addition.
+            #[inline]
+            fn add(self, rhs: $i) -> Self {
+                self.saturating_add_value(rhs)
+            }
+        }
+        impl Sub<$i> for [<Size$b>] {
+            type Output = Self;
+
+            /// Saturating, clamped addition.
+            #[inline]
+            fn sub(self, rhs: $i) -> Self {
+                self.saturating_sub_value(rhs)
+            }
+        }
+        impl Mul<$i> for [<Size$b>] {
+            type Output = Self;
+
+            /// Saturating, clamped multiplication.
+            #[inline]
+            fn mul(self, rhs: $i) -> Self {
+                self.saturating_mul_value(rhs)
+            }
+        }
+        impl Div<$i> for [<Size$b>] {
+            type Output = Self;
+
+            #[inline]
+            /// Saturating, clamped division.
+            fn div(self, rhs: $i) -> Self {
+                self.saturating_div_value(rhs)
+            }
+        }
+
     }};
 }
 size![i8, 8, i16, 16, i32, 32, i64, 64];
