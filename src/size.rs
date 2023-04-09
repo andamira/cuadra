@@ -63,6 +63,16 @@ macro_rules! size {
             pub fn set_h(&mut self, height: $i) {
                 self.h = [<C$b>]::clamp_positive(height);
             }
+
+            /// Swaps the `w, h` values.
+            pub fn swap(&mut self) {
+                core::mem::swap(&mut self.h, &mut self.w)
+            }
+
+            #[doc = "Returns a new `Size"$b  "` with the `w, h` values swapped."]
+            pub const fn swapped(&self) -> [<Size$b>] {
+                Self::new(self.h, self.w)
+            }
         }
 
         impl [<Size$b>] {

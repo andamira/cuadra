@@ -62,6 +62,16 @@ macro_rules! position {
             pub fn set_y(&mut self, y: $i) {
                 self.y = [<C$b>]::clamp(y);
             }
+
+            /// Swaps the `x, y` values.
+            pub fn swap(&mut self) {
+                core::mem::swap(&mut self.y, &mut self.x)
+            }
+
+            #[doc = "Returns a new `Position"$b  "` with the `x, y` values swapped."]
+            pub const fn swapped(&self) -> [<Position$b>] {
+                Self::new(self.y, self.x)
+            }
         }
 
         impl [<Position$b>] {
