@@ -6,6 +6,8 @@
 use core::fmt;
 
 macro_rules! size {
+    // $i: inner primitive
+    // $b: bit size
     ( $($i:ty, $b:expr),+ ) => {
         $( size![single: $i, $b]; )+
     };

@@ -5,6 +5,8 @@
 use core::fmt;
 
 macro_rules! position {
+    // $i: inner primitive
+    // $b: bit size
     ( $($i:ty, $b:expr),+ ) => {
         $( position![single: $i, $b]; )+
     };
@@ -32,8 +34,7 @@ macro_rules! position {
         }
 
         impl [<Position$b>] {
-            /// Defines a new `Position` with the given dimensions,
-            /// which has to be at least `1`.
+            /// Defines a new `Position` with the given dimensions.
             pub const fn new(x: $i, y: $i) -> Self {
                 Self {
                     x: [<C$b>]::clamp(x),
