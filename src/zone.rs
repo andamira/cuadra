@@ -178,14 +178,25 @@ macro_rules! zone {
             }
         }
 
+        impl From<(i32, i32, i32, i32)> for [<Zone$b>] {
+            fn from(tup: (i32, i32, i32, i32)) -> [<Zone$b>] {
+                Self::from_tuple_i32(tup)
+            }
+        }
+        impl From<[<Zone$b>]> for (i32, i32, i32, i32) {
+            fn from(z: [<Zone$b>]) -> (i32, i32, i32, i32) {
+                z.as_tuple_i32()
+            }
+        }
+
         impl From<(i16, i16, i16, i16)> for [<Zone$b>] {
             fn from(tup: (i16, i16, i16, i16)) -> [<Zone$b>] {
                 Self::from_tuple_i16(tup)
             }
         }
         impl From<[<Zone$b>]> for (i16, i16, i16, i16) {
-            fn from(s: [<Zone$b>]) -> (i16, i16, i16, i16) {
-                s.as_tuple_i16()
+            fn from(z: [<Zone$b>]) -> (i16, i16, i16, i16) {
+                z.as_tuple_i16()
             }
         }
 
@@ -195,8 +206,8 @@ macro_rules! zone {
             }
         }
         impl From<[<Zone$b>]> for (u16, u16, u16, u16) {
-            fn from(s: [<Zone$b>]) -> (u16, u16, u16, u16) {
-                s.as_tuple_u16()
+            fn from(z: [<Zone$b>]) -> (u16, u16, u16, u16) {
+                z.as_tuple_u16()
             }
         }
 
@@ -206,8 +217,8 @@ macro_rules! zone {
             }
         }
         impl From<[<Zone$b>]> for (u32, u32, u32, u32) {
-            fn from(s: [<Zone$b>]) -> (u32, u32, u32, u32) {
-                s.as_tuple_u32()
+            fn from(z: [<Zone$b>]) -> (u32, u32, u32, u32) {
+                z.as_tuple_u32()
             }
         }
 
@@ -217,8 +228,8 @@ macro_rules! zone {
             }
         }
         impl From<[<Zone$b>]> for (usize, usize, usize, usize) {
-            fn from(s: [<Zone$b>]) -> (usize, usize, usize, usize) {
-                s.as_tuple_usize()
+            fn from(z: [<Zone$b>]) -> (usize, usize, usize, usize) {
+                z.as_tuple_usize()
             }
         }
     }};

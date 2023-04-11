@@ -184,8 +184,8 @@ macro_rules! position {
             }
         }
         impl From<[<Position$b>]> for (i32, i32) {
-            fn from(s: [<Position$b>]) -> (i32, i32) {
-                s.as_tuple_i32()
+            fn from(p: [<Position$b>]) -> (i32, i32) {
+                p.as_tuple_i32()
             }
         }
 
@@ -195,8 +195,8 @@ macro_rules! position {
             }
         }
         impl From<[<Position$b>]> for (u32, u32) {
-            fn from(s: [<Position$b>]) -> (u32, u32) {
-                s.as_tuple_u32()
+            fn from(p: [<Position$b>]) -> (u32, u32) {
+                p.as_tuple_u32()
             }
         }
 
@@ -206,8 +206,8 @@ macro_rules! position {
             }
         }
         impl From<[<Position$b>]> for (usize, usize) {
-            fn from(s: [<Position$b>]) -> (usize, usize) {
-                s.as_tuple_usize()
+            fn from(p: [<Position$b>]) -> (usize, usize) {
+                p.as_tuple_usize()
             }
         }
 
