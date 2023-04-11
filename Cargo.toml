@@ -1,7 +1,7 @@
 [package]
 name = "cuadra"
-description = "layouts"
-version = "0.3.0"
+description = "layout types"
+version = "0.3.1"
 edition = "2021"
 rust-version = "1.64.0"
 authors = ["José Luis Cruz <joseluis@andamira.net>"]
@@ -23,10 +23,12 @@ std = []
 #
 nightly = [] # only used for docs.rs
 
+
 [dependencies]
 paste = "1.0.12"
 
 [dev-dependencies]
+
 
 [badges]
 maintenance = { status = "experimental" }
